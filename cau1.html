@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Nhập mảng và lọc số nguyên tố</title>
+</head>
+<body>
+    <script>
+        // --- Dán nguyên đoạn code JavaScript ở trên vào đây ---
+        
+        // Hàm kiểm tra số nguyên tố
+        function kiemTraSoNguyenTo(so) {
+            if (so < 2) return false;
+            for (let i = 2; i <= Math.sqrt(so); i++) {
+                if (so % i === 0) return false;
+            }
+            return true;
+        }
+
+        // Hàm nhập mảng số nguyên
+        function nhapMangSoNguyen() {
+            let soLuongPhanTu = parseInt(prompt("Nhập số lượng phần tử n (n ≤ 50):"));
+            if (isNaN(soLuongPhanTu) || soLuongPhanTu <= 0 || soLuongPhanTu > 50) {
+                alert("Giá trị n không hợp lệ! Vui lòng nhập lại.");
+                return null;
+            }
+            let mang = [];
+            for (let chiSo = 0; chiSo < soLuongPhanTu; chiSo++) {
+                let giaTri = parseInt(prompt(`Nhập phần tử thứ ${chiSo}:`));
+                if (isNaN(giaTri)) {
+                    alert("Phải nhập số nguyên! Vui lòng nhập lại phần tử này.");
+                    chiSo--;
+                } else {
+                    mang.push(giaTri);
+                }
+            }
+            return mang;
+        }
+
+        // Hàm chính chạy chương trình
+        function chayChuongTrinh() {
+            let mangA = nhapMangSoNguyen();
+            if (!mangA) return;
+
+            document.write("Mảng a: [" + mangA.join(", ") + "]<br>");
+
+            let mangSoNguyenTo = mangA.filter(kiemTraSoNguyenTo);
+
+            document.write("Mảng b (các số nguyên tố): [" + mangSoNguyenTo.join(", ") + "]");
+        }
+
+        chayChuongTrinh();
+    </script>
+</body>
+</html>

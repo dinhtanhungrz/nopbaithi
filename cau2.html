@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Kiểm tra 2 phân số bằng nhau</title>
+</head>
+<body>
+    <script>
+        // Hàm tính Ước chung lớn nhất (USCLN)
+        function uscln(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        // Hàm rút gọn phân số
+        function rutGonPhanSo(tuSo, mauSo) {
+            let uoc = uscln(Math.abs(tuSo), Math.abs(mauSo));
+            return [tuSo / uoc, mauSo / uoc];
+        }
+
+        // Hàm so sánh 2 phân số
+        function soSanhPhanSo(tuSo1, mauSo1, tuSo2, mauSo2) {
+            if (mauSo1 === 0 || mauSo2 === 0) {
+                alert("Mẫu số không được bằng 0!");
+                return false;
+            }
+
+            let ps1 = rutGonPhanSo(tuSo1, mauSo1);
+            let ps2 = rutGonPhanSo(tuSo2, mauSo2);
+
+            return ps1[0] === ps2[0] && ps1[1] === ps2[1];
+        }
+
+        // Hàm nhập phân số từ người dùng
+        function nhapPhanSo(viTri) {
+            let tuSo = parseInt(prompt(`Nhập tử số của phân số ${viTri}:`));
+            let mauSo = parseInt(prompt(`Nhập mẫu số của phân số ${viTri} (khác 0):`));
+            if (isNaN(tuSo) || isNaN(mauSo) || mauSo === 0) {
+                alert("Phải nhập số nguyên và mẫu số khác 0! Nhập lại phân số.");
+                return nhapPhanSo(viTri);
+            }
+            return [tuSo, mauSo];
+        }
+
+        // Hàm chính chạy chương trình
+        function chayChuongTrinh() {
+            alert("Nhập phân số thứ nhất:");
+            let ps1 = nhapPhanSo(1);
+
+            alert("Nhập phân số thứ hai:");
+            let ps2 = nhapPhanSo(2);
+
+            let ketQua = soSanhPhanSo(ps1[0], ps1[1], ps2[0], ps2[1]);
+
+            document.write(`Phân số ${ps1[0]}/${ps1[1]} và phân số ${ps2[0]}/${ps2[1]} `);
+            document.write(ketQua ? "BẰNG NHAU" : "KHÔNG BẰNG NHAU");
+        }
+
+        chayChuongTrinh();
+    </script>
+</body>
+</html>
