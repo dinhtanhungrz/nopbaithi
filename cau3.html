@@ -1,234 +1,154 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <title>Quản lý Sổ Tiết Kiệm</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 90%;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #333;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        button {
-            margin-right: 10px;
-            margin-top: 10px;
-            padding: 8px 12px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Quản lý Sổ Tiết Kiệm</title>
 </head>
 <body>
-    <h2>Quản lý Sổ Tiết Kiệm</h2>
-    <button onclick="themSoTietKiem()">Thêm sổ tiết kiệm</button>
-    <button onclick="xoaSoTietKiem()">Xóa sổ tiết kiệm</button>
+  <h2>Nhập thông tin sổ tiết kiệm</h2>
 
-    <div id="thongBao" style="color: red; margin-top:10px;"></div>
+  <form id="formThemSo" onsubmit="return themSoTietKiem();">
+    <div id="thongBao" style="color:red;"></div>
 
-    <table id="bangSoTietKiem">
-        <thead>
-            <tr>
-                <th>Mã sổ</th>
-                <th>Loại tiết kiệm</th>
-                <th>Họ tên khách hàng</th>
-                <th>CMND</th>
-                <th>Ngày mở sổ</th>
-                <th>Số tiền gửi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Dữ liệu sẽ hiển thị ở đây -->
-        </tbody>
-    </table>
+    <label for="maSo">Mã sổ (tối đa 5 ký tự):</label><br>
+    <input type="text" id="maSo" maxlength="5" placeholder="VD: STK01" /><br><br>
+
+    <label for="loaiTietKiem">Loại tiết kiệm (tối đa 10 ký tự):</label><br>
+    <input type="text" id="loaiTietKiem" maxlength="10" placeholder="VD: Thường" /><br><br>
+
+    <label for="hoTen">Họ tên khách hàng (tối đa 30 ký tự):</label><br>
+    <input type="text" id="hoTen" maxlength="30" placeholder="VD: Nguyễn Văn A" /><br><br>
+
+    <label for="cmnd">Chứng minh nhân dân (số nguyên):</label><br>
+    <input type="number" id="cmnd" min="1" placeholder="VD: 123456789" /><br><br>
+
+    <label for="ngayMoSo">Ngày mở sổ:</label><br>
+    <input type="date" id="ngayMoSo" /><br><br>
+
+    <label for="soTienGui">Số tiền gửi (số dương):</label><br>
+    <input type="number" id="soTienGui" min="1" step="any" placeholder="VD: 1000000" /><br><br>
+
+    <button type="submit">Thêm sổ tiết kiệm</button>
+  </form>
+
+  <h3>Danh sách sổ tiết kiệm</h3>
+  <table border="1" cellspacing="0" cellpadding="5" id="bangSoTietKiem">
+    <thead>
+      <tr>
+        <th>Mã sổ</th>
+        <th>Loại tiết kiệm</th>
+        <th>Họ tên khách hàng</th>
+        <th>CMND</th>
+        <th>Ngày mở sổ</th>
+        <th>Số tiền gửi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
 <script>
-    // Class SoTietKiem
-    class SoTietKiem {
-        constructor(maSo, loaiTietKiem, hoTen, cmnd, ngayMoSo, soTienGui) {
-            this.maSo = maSo;
-            this.loaiTietKiem = loaiTietKiem;
-            this.hoTen = hoTen;
-            this.cmnd = cmnd;
-            this.ngayMoSo = ngayMoSo;
-            this.soTienGui = soTienGui;
-        }
+  class SoTietKiem {
+    constructor(maSo, loaiTietKiem, hoTen, cmnd, ngayMoSo, soTienGui) {
+      this.maSo = maSo;
+      this.loaiTietKiem = loaiTietKiem;
+      this.hoTen = hoTen;
+      this.cmnd = cmnd;
+      this.ngayMoSo = ngayMoSo;
+      this.soTienGui = soTienGui;
+    }
+  }
+
+  const danhSach = [];
+
+  function validateMaSo(maSo) {
+    return typeof maSo === "string" && maSo.trim() !== "" && maSo.length <= 5;
+  }
+  function validateLoaiTietKiem(loai) {
+    return typeof loai === "string" && loai.trim() !== "" && loai.length <= 10;
+  }
+  function validateHoTen(hoTen) {
+    return typeof hoTen === "string" && hoTen.trim() !== "" && hoTen.length <= 30;
+  }
+  function validateCMND(cmnd) {
+    return Number.isInteger(cmnd) && cmnd > 0;
+  }
+  function validateNgay(ngay) {
+    if (!ngay) return false;
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(ngay)) return false;
+    return !isNaN(new Date(ngay).getTime());
+  }
+  function validateSoTien(soTien) {
+    return typeof soTien === "number" && soTien > 0;
+  }
+  function maSoDaCo(maSo) {
+    return danhSach.some(s => s.maSo === maSo);
+  }
+
+  function hienThiDanhSach() {
+    const tbody = document.querySelector("#bangSoTietKiem tbody");
+    tbody.innerHTML = "";
+    danhSach.forEach(so => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${so.maSo}</td>
+        <td>${so.loaiTietKiem}</td>
+        <td>${so.hoTen}</td>
+        <td>${so.cmnd}</td>
+        <td>${so.ngayMoSo}</td>
+        <td>${so.soTienGui.toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function themSoTietKiem() {
+    const thongBao = document.getElementById("thongBao");
+    thongBao.textContent = "";
+
+    const maSo = document.getElementById("maSo").value.trim();
+    const loaiTietKiem = document.getElementById("loaiTietKiem").value.trim();
+    const hoTen = document.getElementById("hoTen").value.trim();
+    const cmnd = parseInt(document.getElementById("cmnd").value);
+    const ngayMoSo = document.getElementById("ngayMoSo").value;
+    const soTienGui = parseFloat(document.getElementById("soTienGui").value);
+
+    if (!validateMaSo(maSo)) {
+      thongBao.textContent = "Mã sổ không hợp lệ (tối đa 5 ký tự).";
+      return false;
+    }
+    if (maSoDaCo(maSo)) {
+      thongBao.textContent = "Mã sổ đã tồn tại.";
+      return false;
+    }
+    if (!validateLoaiTietKiem(loaiTietKiem)) {
+      thongBao.textContent = "Loại tiết kiệm không hợp lệ (tối đa 10 ký tự).";
+      return false;
+    }
+    if (!validateHoTen(hoTen)) {
+      thongBao.textContent = "Họ tên không hợp lệ (tối đa 30 ký tự).";
+      return false;
+    }
+    if (!validateCMND(cmnd)) {
+      thongBao.textContent = "CMND phải là số nguyên dương.";
+      return false;
+    }
+    if (!validateNgay(ngayMoSo)) {
+      thongBao.textContent = "Ngày mở sổ không hợp lệ (yyyy-mm-dd).";
+      return false;
+    }
+    if (!validateSoTien(soTienGui)) {
+      thongBao.textContent = "Số tiền gửi phải là số dương.";
+      return false;
     }
 
-    // Mảng lưu danh sách sổ tiết kiệm
-    const danhSachSoTietKiem = [];
+    danhSach.push(new SoTietKiem(maSo, loaiTietKiem, hoTen, cmnd, ngayMoSo, soTienGui));
 
-    // Hàm validate dữ liệu theo yêu cầu
-    function validateMaSo(maSo) {
-        return typeof maSo === "string" && maSo.length > 0 && maSo.length <= 5;
-    }
-
-    function validateLoaiTietKiem(loai) {
-        return typeof loai === "string" && loai.length > 0 && loai.length <= 10;
-    }
-
-    function validateHoTen(hoTen) {
-        return typeof hoTen === "string" && hoTen.length > 0 && hoTen.length <= 30;
-    }
-
-    function validateCMND(cmnd) {
-        return Number.isInteger(cmnd) && cmnd > 0;
-    }
-
-    function validateNgay(ngay) {
-        // Kiểm tra format ngày "yyyy-mm-dd" hoặc "dd/mm/yyyy"
-        // Dùng regex đơn giản: yyyy-mm-dd
-        const regex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!regex.test(ngay)) return false;
-
-        // Kiểm tra tính hợp lệ ngày tháng
-        const date = new Date(ngay);
-        return !isNaN(date.getTime());
-    }
-
-    function validateSoTien(soTien) {
-        return typeof soTien === "number" && soTien > 0;
-    }
-
-    // Hàm kiểm tra mã sổ có tồn tại không
-    function kiemTraMaSoTonTai(maSo) {
-        return danhSachSoTietKiem.some(s => s.maSo === maSo);
-    }
-
-    // Hàm hiển thị danh sách sổ tiết kiệm ra bảng
-    function hienThiDanhSach() {
-        const tbody = document.querySelector("#bangSoTietKiem tbody");
-        tbody.innerHTML = ""; // xóa cũ
-
-        danhSachSoTietKiem.forEach(so => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${so.maSo}</td>
-                <td>${so.loaiTietKiem}</td>
-                <td>${so.hoTen}</td>
-                <td>${so.cmnd}</td>
-                <td>${so.ngayMoSo}</td>
-                <td>${so.soTienGui.toLocaleString()}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // Hàm nhập và thêm sổ tiết kiệm
-    function themSoTietKiem() {
-        let maSo, loaiTietKiem, hoTen, cmnd, ngayMoSo, soTienGui;
-        const thongBao = document.getElementById("thongBao");
-        thongBao.textContent = "";
-
-        // Nhập mã sổ và kiểm tra tồn tại, cho nhập lại nếu sai
-        do {
-            maSo = prompt("Nhập mã sổ tiết kiệm (tối đa 5 ký tự):");
-            if (!validateMaSo(maSo)) {
-                alert("Mã sổ không hợp lệ, vui lòng nhập lại (tối đa 5 ký tự).");
-                maSo = null;
-                continue;
-            }
-            if (kiemTraMaSoTonTai(maSo)) {
-                alert("Mã sổ đã tồn tại, vui lòng nhập mã khác.");
-                maSo = null;
-            }
-        } while (!maSo);
-
-        // Nhập loại tiết kiệm
-        do {
-            loaiTietKiem = prompt("Nhập loại tiết kiệm (tối đa 10 ký tự):");
-            if (!validateLoaiTietKiem(loaiTietKiem)) {
-                alert("Loại tiết kiệm không hợp lệ, vui lòng nhập lại.");
-                loaiTietKiem = null;
-            }
-        } while (!loaiTietKiem);
-
-        // Nhập họ tên
-        do {
-            hoTen = prompt("Nhập họ tên khách hàng (tối đa 30 ký tự):");
-            if (!validateHoTen(hoTen)) {
-                alert("Họ tên không hợp lệ, vui lòng nhập lại.");
-                hoTen = null;
-            }
-        } while (!hoTen);
-
-        // Nhập CMND
-        do {
-            let cmndInput = prompt("Nhập chứng minh nhân dân (số nguyên dương):");
-            cmnd = parseInt(cmndInput);
-            if (!validateCMND(cmnd)) {
-                alert("CMND không hợp lệ, vui lòng nhập lại số nguyên dương.");
-                cmnd = null;
-            }
-        } while (!cmnd);
-
-        // Nhập ngày mở sổ
-        do {
-            ngayMoSo = prompt("Nhập ngày mở sổ (định dạng yyyy-mm-dd):");
-            if (!validateNgay(ngayMoSo)) {
-                alert("Ngày không hợp lệ, vui lòng nhập lại đúng định dạng yyyy-mm-dd.");
-                ngayMoSo = null;
-            }
-        } while (!ngayMoSo);
-
-        // Nhập số tiền gửi
-        do {
-            let tienInput = prompt("Nhập số tiền gửi (số dương):");
-            soTienGui = parseFloat(tienInput);
-            if (!validateSoTien(soTienGui)) {
-                alert("Số tiền gửi không hợp lệ, vui lòng nhập lại số dương.");
-                soTienGui = null;
-            }
-        } while (!soTienGui);
-
-        // Tạo đối tượng và thêm vào mảng
-        const soMoi = new SoTietKiem(maSo, loaiTietKiem, hoTen, cmnd, ngayMoSo, soTienGui);
-        danhSachSoTietKiem.push(soMoi);
-
-        alert("Thêm sổ tiết kiệm thành công!");
-
-        hienThiDanhSach();
-    }
-
-    // Hàm xóa sổ tiết kiệm theo mã sổ
-    function xoaSoTietKiem() {
-        const thongBao = document.getElementById("thongBao");
-        thongBao.textContent = "";
-
-        let maSoXoa;
-
-        do {
-            maSoXoa = prompt("Nhập mã sổ tiết kiệm muốn xóa:");
-            if (!validateMaSo(maSoXoa)) {
-                alert("Mã sổ không hợp lệ, vui lòng nhập lại.");
-                maSoXoa = null;
-                continue;
-            }
-            if (!kiemTraMaSoTonTai(maSoXoa)) {
-                alert("Mã sổ không tồn tại, vui lòng nhập lại.");
-                maSoXoa = null;
-            }
-        } while (!maSoXoa);
-
-        if (confirm(`Bạn có chắc chắn muốn xóa sổ tiết kiệm mã: ${maSoXoa} ?`)) {
-            const chiSoXoa = danhSachSoTietKiem.findIndex(so => so.maSo === maSoXoa);
-            if (chiSoXoa !== -1) {
-                danhSachSoTietKiem.splice(chiSoXoa, 1);
-                alert("Xóa thành công!");
-                hienThiDanhSach();
-            }
-        } else {
-            alert("Đã hủy xóa.");
-        }
-    }
-
-    // Khởi tạo bảng rỗng lúc đầu
+    // Xóa form
+    document.getElementById("formThemSo").reset();
     hienThiDanhSach();
+    return false; // chặn submit reload trang
+  }
 </script>
 </body>
 </html>
